@@ -1,0 +1,4 @@
+digraph {
+node [shape="circle",ordering="out"]
+140530303636816 [label="non-accepting leaf",shape="ellipse",color="red"]
+}
