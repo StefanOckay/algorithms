@@ -66,31 +66,22 @@ def bfs(graph, start):
                       (None pokud u nebyl nalezen)
     """
     # TODO
+    succ_list = convert_to_list(graph)
+    queue = deque()
+    queue.append(start)
     graph.distance[start] = 0
-    queue = Queue()
-    enqueue(queue, start)
-    successors_list = convert_to_list(graph)
-    while not isEmpty_Queue(queue):
-        for successor in successors_list[queue.first.value]:
-            if graph.distance[successor] is None:
-                graph.distance[successor] = graph.distance[queue.first.value] + 1
-                graph.parent[successor] = queue.first.value
-                enqueue(queue, successor)
-        dequeue(queue)
-
-
-def first_non_visited(successors, graph):
-    i = 0
-    lens = len(successors)
-    while i < lens and graph.visited[successors[i]]:
-        i += 1
-    if i == lens:
-        return None
-    return successors[i]
+    while queue:
+        node = queue.popleft()
+        for i in range(len(succ_list[node])):
+            neighbor = succ_list[node][i]
+            if graph.distance[neighbor] is None:
+                graph.parent[neighbor] = node
+                graph.distance[neighbor] = graph.distance[node] + 1
+                queue.append(neighbor)
 
 
 def dfs(graph, start):
-    """Prochazeni grafu do sirky (DFS) z vrcholu start; vcetne casovych znamek.
+    """Prochazeni grafu do hloubky (DFS) z vrcholu start; vcetne casovych znamek.
     Pri vyberu nasledniku vybirejte vzdy nejdrive naslednika s mensim cislem.
 
     vstup: 'graph' typu Graph, v nemz maji pomocna pole vsechny prvky
@@ -110,23 +101,27 @@ def dfs(graph, start):
     muzete zkusit napsat iterativni verzi.
     """
     # TODO
-    successors_list = convert_to_list(graph)
-    stack = Stack()
-    push(stack, start)
+    succ_list = convert_to_list(graph)
+    stack = deque()
+    stack.append(start)
     time = 1
     graph.discovery_time[start] = time
-    graph.visited[start] = True
-    while not isEmpty_Stack(stack):
+    while stack:
         time += 1
-        next_node = first_non_visited(successors_list[stack.top.value], graph)
-        if next_node is None:
-            graph.finishing_time[stack.top.value] = time
-            pop(stack)
+        node = stack.pop()
+        son = None
+        for i in range(len(succ_list[node])):
+            adj_node = succ_list[node][i]
+            if graph.discovery_time[adj_node] is None:
+                son = adj_node
+                break
+        if son is not None:
+            stack.append(node)
+            stack.append(son)
+            graph.parent[son] = node
+            graph.discovery_time[son] = time
         else:
-            push(stack, next_node)
-            graph.parent[stack.top.value] = stack.top.below.value
-            graph.discovery_time[stack.top.value] = time
-            graph.visited[stack.top.value] = True
+            graph.finishing_time[node] = time 
 
 
 def convert_to_list(graph):

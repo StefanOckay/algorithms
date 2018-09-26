@@ -69,22 +69,19 @@ def convert_to_list(graph):
     # TODO
     result = []
     for i in range(graph.size):
-        vertex_neighbors = []
+        row = []
         for j in range(graph.size):
             if graph.matrix[i][j]:
-                vertex_neighbors.append(j)
-        result.append(vertex_neighbors)
+                row.append(j)
+        result.append(row)
     return result
 
 
-def first_non_colored(color_array):
-    i = 0
-    lena = len(color_array)
-    while i < lena and color_array[i] is not None:
-        i += 1
-    if i == lena:
-        return None
-    return i
+def find_free(colors):
+    for i in range(len(colors)):
+        if colors[i] is None:
+            return i
+    return None
 
 
 def colourable(graph):
@@ -99,24 +96,24 @@ def colourable(graph):
     """
 
     # TODO
-    successors_list = convert_to_list(graph)
-    color_array = [None for _ in range(graph.size)]
+    succ_list = convert_to_list(graph)
     queue = deque()
-    non_colored = first_non_colored(color_array)
-    while non_colored is not None:
-        queue.append(non_colored)
-        color_array[non_colored] = True
+    colors = [None] * graph.size
+    start = find_free(colors)
+    while start is not None:
+        queue.append(start)
+        colors[start] = True
         while queue:
-            u = queue.popleft()
-            for successor in successors_list[u]:
-                if color_array[successor] is None:
-                    color_array[successor] = not color_array[u]
-                    queue.append(successor)
-                else:
-                    if u != successor and color_array[successor] == color_array[u]:
-                        return False
-        non_colored = first_non_colored(color_array)
-    return True
+            node = queue.popleft()
+            for i in range(len(succ_list[node])):
+                neighbor = succ_list[node][i]
+                if colors[neighbor] is None:
+                    colors[neighbor] = not colors[node]
+                    queue.append(neighbor)
+                elif colors[neighbor] == colors[node]:
+                    return False
+        start = find_free(colors)
+    return True   
 
 
 # Ukol 2.
@@ -134,15 +131,6 @@ def colourable(graph):
 #    mejme graf s vrcholy 0, 1, 2 a hranami 0 -> 1, 2 -> 1, 2 -> 0;
 #    vystupem bude pole (Pythonovsky seznam] [2, 0, 1]
 
-def first_non_discovered(discovery_array):
-    i = 0
-    lena = len(discovery_array)
-    while i < lena and discovery_array[i] is not None:
-        i += 1
-    if i == lena:
-        return None
-    return i
-
 
 def compute_dependencies(graph):
     """Spocita topologicke usporadani vrcholu v grafu.
@@ -156,34 +144,39 @@ def compute_dependencies(graph):
     """
 
     # TODO
+    succ_list = convert_to_list(graph)
     result = []
-    successors_list = convert_to_list(graph)
+    stack = deque()
     discovery_array = [None for _ in range(graph.size)]
     finish_array = [None for _ in range(graph.size)]
-    stack = deque()
-    non_discovered = first_non_discovered(discovery_array)
-    while non_discovered is not None:
-        time = 1
-        stack.append(non_discovered)
-        discovery_array[non_discovered] = time
+    start = 0
+    time = 0
+    while start is not None:
+        time += 1
+        stack.append(start)
+        discovery_array[start] = time
         while stack:
             time += 1
-            u = stack.pop()
+            node = stack.pop()
             next_node = None
-            for successor in successors_list[u]:
+            for successor in succ_list[node]:
                 if discovery_array[successor] is None:
                     next_node = successor
-                else:
-                    if finish_array[successor] is None and discovery_array[successor] < discovery_array[u]:
-                        return None
+                    break
+                elif finish_array[successor] is None and discovery_array[successor] < discovery_array[node]:
+                    return None
             if next_node is None:
-                result.append(u)
-                finish_array[u] = time
+                finish_array[node] = time
+                result.append(node)
             else:
-                stack.append(u)
+                stack.append(node)
                 stack.append(next_node)
                 discovery_array[next_node] = time
-        non_discovered = first_non_discovered(discovery_array)
+        start = None
+        for node in range(graph.size):
+            if discovery_array[node] is None:
+                start = node
+                break
     return list(reversed(result))
 
 

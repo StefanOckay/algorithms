@@ -63,7 +63,7 @@ def is_reflexive(graph):
     extrasekvencni prostorova slozitost: O(1)
     """
     # TODO
-    for i in range(0, graph.size):
+    for i in range(graph.size):
         if not graph.matrix[i][i]:
             return False
     return True
@@ -77,9 +77,9 @@ def is_symmetric(graph):
     extrasekvencni prostorova slozitost: O(1)
     """
     # TODO
-    for i in range(0, graph.size):
+    for i in range(graph.size):
         for j in range(i + 1, graph.size):
-            if graph.matrix[i][j] != graph.matrix[j][i]:
+            if graph.matrix[i][j] is not graph.matrix[j][i]:
                 return False
     return True
 
@@ -92,9 +92,9 @@ def is_antisymmetric(graph):
     extrasekvencni prostorova slozitost: O(1)
     """
     # TODO
-    for i in range(0, graph.size):
+    for i in range(graph.size):
         for j in range(i + 1, graph.size):
-            if graph.matrix[i][j] and graph.matrix[j][i]:
+            if graph.matrix[i][j] is graph.matrix[j][i]:
                 return False
     return True
 
@@ -107,10 +107,10 @@ def is_transitive(graph):
     extrasekvencni prostorova slozitost: O(1)
     """
     # TODO
-    for i in range(0, graph.size):
-        for j in range(0, graph.size):
-            if i != j and graph.matrix[i][j]:
-                for k in range(0, graph.size):
+    for i in range(graph.size):
+        for j in range(graph.size):
+            if graph.matrix[i][j]:
+                for k in range(graph.size):
                     if graph.matrix[j][k]:
                         if not graph.matrix[i][k]:
                             return False
@@ -152,23 +152,22 @@ def convert_to_list(graph):
     return result
 
 
-def bfs(graph, start):
-    visited = [False] * graph.size
+def reachable_from(start, graph):
+    succ_list = convert_to_list(graph)
     queue = deque()
     queue.append(start)
-    visited[start] = True
-    successors_list = convert_to_list(graph)
-    cycle = False
+    distance = [None for _ in range(graph.size)]
+    distance[start] = 0
+    reachables = []
     while queue:
-        u = queue.popleft()
-        for successor in successors_list[u]:
-            if successor == start:
-                cycle = True
-            if not visited[successor]:
-                visited[successor] = True
-                queue.append(successor)
-    visited[start] = cycle
-    return visited
+        node = queue.popleft()
+        for i in range(len(succ_list[node])):
+            next_node = succ_list[node][i]
+            if distance[next_node] is None or distance[next_node] == 0:
+                reachables.append(next_node)
+                distance[next_node] = distance[node] + 1
+                queue.append(next_node)
+    return reachables
 
 
 def transitive_closure(graph):
@@ -178,15 +177,16 @@ def transitive_closure(graph):
     casova slozitost: O(n^3), kde n je pocet vrcholu grafu
     """
     # TODO
-    tc_graph = Graph(graph.size)
-    for i in range(0, graph.size):
-        for j in range(0, graph.size):
-            tc_graph.matrix[i][j] = graph.matrix[i][j]
-    for i in range(0, graph.size):
-        reachable_from_i = bfs(graph, i)
-        for j in range(0, graph.size):
-            tc_graph.matrix[i][j] = reachable_from_i[j]
-    return tc_graph
+    new_graph = Graph(graph.size)
+    for i in range(graph.size):
+        for j in range(graph.size):
+            new_graph.matrix[i][j] = graph.matrix[i][j]
+    for i in range(new_graph.size):
+        reachables = reachable_from(i, graph)
+        for j in range(len(reachables)):
+            new_graph.matrix[i][reachables[j]] = True
+    return new_graph
+
 
 
 graph1 = Graph(3)

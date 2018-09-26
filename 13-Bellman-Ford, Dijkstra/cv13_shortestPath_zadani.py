@@ -49,7 +49,8 @@ class Graph:
 def is_edge(graph, u, v):
     """Pokud v zadanem grafu existuje hrana (u, v), vraci True, jinak False.
     """
-    pass  # TODO
+    # TODO
+    return graph.matrix[u][v]
 
 
 def initialize(graph, s):
@@ -57,7 +58,14 @@ def initialize(graph, s):
     vrcholu 's' na 0 a zbytek na nekonecno. Predchudci vsech vrcholu jsou
     inicializovani na None.
     """
-    pass  # TODO
+    # TODO
+    for _ in range(graph.size):
+        graph.predecessors.append(None)
+    for i in range(graph.size):
+        if i == s:
+            graph.distances.append(0)
+        else:
+            graph.distances.append(math.inf)
 
 
 def relax(graph, u, v):
@@ -68,7 +76,18 @@ def relax(graph, u, v):
     v pomocnem poli 'distances'.
     (To se muze hodit pri implementaci algoritmu nize.)
     """
-    pass  # TODO
+    # TODO
+    graph.distances[v] = graph.distances[u] + graph.matrix[u][v]
+    graph.predecessors[v] = u
+
+
+def get_edges(graph):
+    edges = []
+    for i in range(graph.size):
+        for j in range(graph.size):
+            if graph.matrix[i][j] != math.inf:
+                edges.append((i, j))
+    return edges
 
 
 def bellman_ford(graph, u, v):
@@ -83,7 +102,29 @@ def bellman_ford(graph, u, v):
     vzdalenosti vrcholu od 'u' a v poli 'graph.predecessors' budou prechudci
     vrcholu na nejkratsi ceste z 'u'.
     """
-    pass  # TODO
+    # TODO
+    initialize(graph, u)
+    edges = get_edges(graph)
+    for i in range(graph.size - 1):
+        pre_end = True
+        for a, b in edges:
+            if graph.distances[b] > graph.distances[a] + graph.matrix[a][b]:
+                relax(graph, a, b)
+                pre_end = False
+        if pre_end:
+            break
+    for a, b in edges:
+        if graph.distances[b] > graph.distances[a] + graph.matrix[a][b]:
+            return None
+    return graph.distances[v]
+
+
+def get_neighbors(graph, u):
+    neighbors = []
+    for i in range(graph.size):
+        if graph.matrix[u][i] != math.inf:
+            neighbors.append(i)
+    return neighbors
 
 
 def dijkstra(graph, u, v):
@@ -99,7 +140,22 @@ def dijkstra(graph, u, v):
 
     Hint: Do prioritni fronty budete muset ukladat dvojice, ne jen vrcholy.
     """
-    pass  # TODO
+    # TODO
+    initialize(graph, u)
+    pairs = [(graph.distances[i], i) for i in range(graph.size)]
+    Q = []
+    for i in range(graph.size):
+        heapq.heappush(Q, pairs[i])
+    while Q:
+        a_dist, a = heapq.heappop(Q)
+        if a_dist == math.inf:
+            continue
+        neighbors = get_neighbors(graph, a)
+        for b in neighbors:
+            if graph.distances[b] > a_dist + graph.matrix[a][b]:
+                relax(graph, a, b)
+                heapq.heappush(Q, (graph.distances[b], b))
+    return graph.distances[v]
 
 
 # Dodatek k graphvizu:
